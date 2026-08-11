@@ -22,6 +22,7 @@ namespace BK7231Flasher
 			addLog("Going to open port: " + serialName + "." + Environment.NewLine);
 			try
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				serial = new SerialPort(serialName, 115200);
 				serial.Open();
 				serial.DiscardInBuffer();
@@ -324,7 +325,6 @@ namespace BK7231Flasher
 
 		protected override bool CheckHash(int addr, int len, byte[] data)
 		{
-			//return base.CheckHash(addr, len, data);
 			var cmd = new byte[8];
 			cmd[0] = (byte)(addr & 0xFF);
 			cmd[1] = (byte)((addr >> 8) & 0xFF);
@@ -334,7 +334,7 @@ namespace BK7231Flasher
 			cmd[5] = (byte)((len >> 8) & 0xFF);
 			cmd[6] = (byte)((len >> 16) & 0xFF);
 			cmd[7] = (byte)((len >> 24) & 0xFF);
-			var res = ExecuteCommand(0x8F, cmd, 30f, 4);
+			var res = ExecuteCommand(CMD_CUSTOM_CRC32, cmd, 30f, 4);
 			uint crc;
 			if(res == null)
 			{
@@ -373,7 +373,6 @@ namespace BK7231Flasher
 			Array.Copy(rf_efuse, 0x100, mac, 0, 6);
 			return mac;
 		}
-
 
 		public byte[] ReadRomTarget(RomReadTarget target)
 		{
@@ -421,6 +420,85 @@ namespace BK7231Flasher
 				{ closePort(); }
 				catch { }
 			}
+		}
+
+		protected override byte[] ExecuteCommand(int type, byte[] parms = null,
+			float timeout = 0.1f, int expectedReplyLen = 0, int br = 115200, bool isErrorExpected = false)
+		{
+			parms = parms ?? (new byte[0]);
+			// MAGIC, TYPE, MSG LENGTH (2 bytes)
+			List<byte> raw = new List<byte>() { 0xA5, (byte)type, (byte)(parms.Length & 0xFF), (byte)((parms.Length >> 8) & 0xFF) };
+			// MSG
+			raw.AddRange(parms);
+			// CRC8
+			raw.Add(StubCRC8(raw.ToArray(), raw.Count));
+			serial.Write(raw.ToArray(), 0, raw.Count);
+			Thread.Sleep(10);
+			if(type == CMD_BAUD) serial.BaudRate = br;
+			int timeoutMS = (int)(timeout * 1000);
+			Stopwatch sw = Stopwatch.StartNew();
+			var expect = 1 + 1 + 2 + expectedReplyLen + 1 + 1; // magic + type + data_len + data + status + crc8
+			while(sw.ElapsedMilliseconds < timeoutMS)
+			{
+				if(isCancelled) return null;
+				if(serial.BytesToRead >= expect)
+					break;
+			}
+			if(serial.BytesToRead == 0)
+			{
+				if(!isErrorExpected) addErrorLine("Command response is empty!");
+				return null;
+			}
+			var bytes = new byte[serial.BytesToRead];
+			serial.Read(bytes, 0, bytes.Length);
+			if(bytes[0] != 0x5A)
+			{
+				if(!isErrorExpected) addErrorLine("Command header is incorrect!");
+				return null;
+			}
+			byte crcret = StubCRC8(bytes, bytes.Length - 1);
+			if(crcret != bytes[bytes.Length - 1])
+			{
+				addErrorLine("Command CRC is incorrect!");
+				logger.setState("CRC mismatch!", Color.Red);
+				return null;
+			}
+			var status = string.Empty;
+			switch(bytes[bytes.Length - 2])
+			{
+				case 0x00: break;
+				case 0x01:
+					status = "ERROR";
+					break;
+				case 0x02:
+					status = "ADDR_ERROR";
+					break;
+				case 0x03:
+					status = "TYPE_ERROR";
+					break;
+				case 0x04:
+					status = "LEN_ERROR";
+					break;
+				case 0x05:
+					status = "CRC_ERROR";
+					break;
+				default:
+					status = $"Unknown error {bytes[bytes.Length - 2]}";
+					break;
+			}
+			if(status != string.Empty)
+			{
+				if(!isErrorExpected) addErrorLine($"Command status is {status}");
+				return null;
+			}
+			if(bytes.Length != expect)
+			{
+				addErrorLine($"Command reply length {bytes.Length} != expected {expect}");
+				return null;
+			}
+			var ret = new byte[expectedReplyLen];
+			Array.Copy(bytes, 4, ret, 0, expectedReplyLen);
+			return ret;
 		}
 	}
 }

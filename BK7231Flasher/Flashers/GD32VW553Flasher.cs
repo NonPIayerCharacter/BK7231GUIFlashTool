@@ -38,6 +38,7 @@ namespace BK7231Flasher
 			addLog("Going to open port: " + serialName + "." + Environment.NewLine);
 			try
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				serial = new SerialPort(serialName, 115200, Parity.Even);
 				serial.Open();
 				serial.DiscardInBuffer();
@@ -230,6 +231,7 @@ namespace BK7231Flasher
 			var stubsync = ExecuteCommand(CMD_SYN, Encoding.ASCII.GetBytes("cnys"), 0.2f, 0, isErrorExpected: false);
 			if(stubsync != null)
 			{
+				if(!CheckChipInfo(PrintChipInfo)) return false;
 				addLogLine("Stub is already uploaded!");
 				return true;
 			}
@@ -254,15 +256,6 @@ namespace BK7231Flasher
 			{
 				AllowedCommands = SendGETCommand(out var bootVersion);
 				addLogLine($"Bootloader version: 0x{bootVersion:X}");
-				var pid = Encoding.ASCII.GetString(SendPIDCommand().Take(4).ToArray());
-				addLogLine($"Product ID: {pid}");
-				flashSizeMB = pid[2] switch
-				{
-					'I' => 2,
-					'M' => 4,
-					_ => throw new Exception("Unknown chip rev")
-				};
-				addLogLine($"Flash size is {flashSizeMB}MB");
 				return true;
 			}
 			return false;
@@ -309,8 +302,8 @@ namespace BK7231Flasher
 			serial.DiscardInBuffer();
 			serial.DiscardOutBuffer();
 			var stubsync = ExecuteCommand(CMD_SYN, Encoding.ASCII.GetBytes("cnys"), 0.2f, 0, isErrorExpected: false);
-			if(stubsync == null)
-				return false;
+			if(stubsync == null) return false;
+			if(!CheckChipInfo(PrintChipInfo)) return false;
 			return true;
 		}
 
@@ -497,6 +490,19 @@ namespace BK7231Flasher
 		{
 			var rf_efuse = ExecuteCommand(CMD_CUSTOM_READ_EFUSE, expectedReplyLen: 64);
 			return new byte[] { rf_efuse[28], rf_efuse[29], rf_efuse[30], rf_efuse[24], rf_efuse[25], rf_efuse[26] };
+		}
+
+		private void PrintChipInfo(byte[] data)
+		{
+			var pid = Encoding.ASCII.GetString(data.Skip(4).Take(4).ToArray());
+			addLogLine($"Product ID: {pid}");
+			flashSizeMB = pid[2] switch
+			{
+				'I' => 2,
+				'M' => 4,
+				_ => throw new Exception("Unknown chip rev")
+			};
+			addLogLine($"Flash size is {flashSizeMB}MB");
 		}
 	}
 }

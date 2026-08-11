@@ -32,7 +32,8 @@ namespace BK7231Flasher
             { BKType.ECR6600, GetEcr6600Instructions() },
             { BKType.GD32VW553, GetGd32vw553Instructions() },
             { BKType.OPL1000A2, GetOplInstructions() },
-            { BKType.RTL8710B, GetRtl8710bInstructions() },
+            { BKType.RTL8710B, GetRtlUartDownloadInstructions("RTL8710B", "PA29", "PA30") },
+            { BKType.RTL8720D, GetRtlUartDownloadInstructions("RTL8720D", "PB1", "PB0") },
             { BKType.RTL8721DA, GetRtlUartDownloadInstructions("RTL8721DA", "PB4", "PB5") },
             { BKType.RTL8720E, GetRtlUartDownloadInstructions("RTL8720E", "PA19", "PA20") },
             { BKType.RTL87X0C, GetRtl87x0cInstructions() },
@@ -82,24 +83,14 @@ namespace BK7231Flasher
                 "With PA00 and PA13 pulled high, start the read operation first, then reset the chip by briefly pulling CEN to GND, or by power-cycling the 3.3 V supply.";
         }
 
-        static string GetRtl8710bInstructions()
-        {
-            return "Connect the RTL8710B log UART to a USB-to-TTL serial adapter:" + System.Environment.NewLine +
-                "- Adapter RX -> RTL8710B Log_TX (PA30)" + System.Environment.NewLine +
-                "- Adapter TX -> RTL8710B Log_RX (PA29)" + System.Environment.NewLine +
-                "- Adapter GND -> target GND" + System.Environment.NewLine +
-                GetPowerAndGroundInstructions() + System.Environment.NewLine +
-                "Temporarily disconnect the adapter RX from PA30 and hold PA30 low while resetting the chip or power-cycling the 3.3 V supply. Then release PA30, reconnect it to the adapter RX, and start the read.";
-        }
-
         static string GetRtlUartDownloadInstructions(string platformName, string logRxPin, string logTxPin)
         {
-            return "Connect the " + platformName + " log UART to a USB-to-TTL serial adapter:" + System.Environment.NewLine +
-                "- Adapter RX -> " + platformName + " Log_TX (" + logTxPin + " / UD_DIS)" + System.Environment.NewLine +
-                "- Adapter TX -> " + platformName + " Log_RX (" + logRxPin + ")" + System.Environment.NewLine +
+            return $"Connect the {platformName} log UART to a USB-to-TTL serial adapter:" + System.Environment.NewLine +
+                $"- Adapter RX -> {platformName} Log_TX ({logTxPin})" + System.Environment.NewLine +
+                $"- Adapter TX -> {platformName} Log_RX ({logRxPin})" + System.Environment.NewLine +
                 "- Adapter GND -> target GND" + System.Environment.NewLine +
                 GetPowerAndGroundInstructions() + System.Environment.NewLine +
-                "Temporarily disconnect the adapter RX from " + logTxPin + " and hold " + logTxPin + " / UD_DIS low while resetting the chip or power-cycling the 3.3 V supply. Then release " + logTxPin + ", reconnect it to the adapter RX, and start the read.";
+                $"Temporarily hold {logTxPin} low while resetting the chip or power-cycling the 3.3 V supply. Then release {logTxPin} it and start the read.";
         }
 
         static string GetEcr6600Instructions()

@@ -8,10 +8,6 @@ namespace BK7231Flasher
         {
             switch (chipType)
             {
-                case BKType.RTL8710B:
-                    return new RTLNFlasher(cancellationToken);
-                case BKType.RTL8720D:
-                    return new RTLFlasher(cancellationToken);
                 case BKType.RTL87X0C:
                     return new RTLZ2Flasher(cancellationToken);
                 case BKType.LN882H:
@@ -53,6 +49,8 @@ namespace BK7231Flasher
                     return new ESPFlasher(cancellationToken);
                 case BKType.GD32VW553:
                     return new GD32VW553Flasher(cancellationToken);
+                case BKType.RTL8710B:
+                case BKType.RTL8720D:
                 case BKType.RTL8721DA:
                 case BKType.RTL8720E:
                     return new RTLNFlasher(cancellationToken);

@@ -13,7 +13,6 @@ namespace BK7231Flasher
 		const int EcrRomSize = 0x00010000;
 		const int EcrEfuseSize = 0x80;
 
-		//static readonly byte CMD_SYN = 0x00;
 		static readonly byte CMD_RAM_DOWNLOAD = 0x01;
 		//static readonly byte CMD_FLASH_DOWNLOAD = 0x02;
 		//static readonly byte CMD_FLASH_UPLOAD = 0x03;
@@ -24,8 +23,6 @@ namespace BK7231Flasher
 		{
 		}
 
-		byte[] flashID;
-
 		protected override bool doGenericSetup()
 		{
 			addLog("Now is: " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString() + "." + Environment.NewLine);
@@ -33,6 +30,7 @@ namespace BK7231Flasher
 			addLog("Going to open port: " + serialName + "." + Environment.NewLine);
 			try
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				serial = new SerialPort(serialName, 115200);
 				serial.Open();
 				serial.DiscardInBuffer();
@@ -63,9 +61,10 @@ namespace BK7231Flasher
 
 		protected override bool Sync()
 		{
-			flashID = ReadFlashId(true);
+			var flashID = ReadFlashId(true);
 			if(flashID != null)
 			{
+				if(!CheckChipInfo()) return false;
 				addLogLine("Stub is already uploaded!");
 				return true;
 			}
@@ -100,7 +99,7 @@ namespace BK7231Flasher
 
 		private bool UploadStub()
 		{
-			var stub = FLoaders.GetBinaryFromAssembly("ECR6600_Stub_Custom");
+			var stub = FLoaders.GetBinaryFromAssembly("ECR6600_Stub");
 			var startupAddress = 0x10000; // works even if 0
 			var empty = new byte[8];
 			var dat = new List<byte>()
@@ -141,9 +140,9 @@ namespace BK7231Flasher
 			}
 			Thread.Sleep(10);
 			serial.DiscardInBuffer();
-			flashID = ReadFlashId();
-			if(tries == 0 || flashID == null)
-				return false;
+			var flashID = ReadFlashId();
+			if(tries == 0 || flashID == null) return false;
+			if(!CheckChipInfo()) return false;
 			return true;
 		}
 

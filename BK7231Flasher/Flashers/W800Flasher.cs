@@ -10,8 +10,6 @@ namespace BK7231Flasher
 {
 	public class W800Flasher : ECRBaseFlasher, IRomReadFlasher
 	{
-		const byte CMD_CRC32 = 0x8F;
-
 		public W800Flasher(CancellationToken ct) : base(ct)
 		{
 		}
@@ -23,6 +21,7 @@ namespace BK7231Flasher
 			addLog("Going to open port: " + serialName + "." + Environment.NewLine);
 			try
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				serial = new SerialPort(serialName, 115200)
 				{
 					ReadBufferSize = 65536,
@@ -51,6 +50,7 @@ namespace BK7231Flasher
 		{
 			if(ReadFlashId(true) != null)
 			{
+				if(!CheckChipInfo()) return false;
 				addLogLine("Stub is already uploaded!");
 				return true;
 			}
@@ -58,7 +58,12 @@ namespace BK7231Flasher
 				return false;
 			if(!UploadStub())
 				return false;
-			return ReadFlashId() != null;
+			if(ReadFlashId() != null)
+			{
+				if(!CheckChipInfo()) return false;
+				return true;
+			}
+			return false;
 		}
 
 		private bool SyncW800DownloadMode()
@@ -166,139 +171,11 @@ namespace BK7231Flasher
 			if(xm.Send(stub) != stub.Length)
 				return false;
 			addLogLine("Stub uploaded!");
-			if(!WaitForSyncPrompt(20000, true))
-				return false;
+			Thread.Sleep(100);
 			return ExecuteCommand(CMD_SYN) != null;
 		}
 
-		private bool ReadStubByte(Stopwatch sw, int timeoutMs, out byte value)
-		{
-			while(sw.ElapsedMilliseconds < timeoutMs && !isCancelled)
-			{
-				if(serial.BytesToRead > 0)
-				{
-					value = (byte)serial.ReadByte();
-					return true;
-				}
-				Thread.Sleep(1);
-			}
-			value = 0;
-			return false;
-		}
-
-		protected override byte[] ExecuteCommand(int type, byte[] parms = null,
-			float timeout = 0.1f, int expectedReplyLen = 0, int br = 115200, bool isErrorExpected = false)
-		{
-			parms = parms ?? new byte[0];
-			var raw = new List<byte>()
-			{
-				0xA5,
-				(byte)type,
-				(byte)(parms.Length & 0xFF),
-				(byte)((parms.Length >> 8) & 0xFF)
-			};
-			raw.AddRange(parms);
-			raw.Add(StubCRC8(raw.ToArray(), raw.Count));
-
-			serial.DiscardInBuffer();
-			serial.Write(raw.ToArray(), 0, raw.Count);
-			int timeoutMs = Math.Max(1, (int)(timeout * 1000));
-			Stopwatch sw = Stopwatch.StartNew();
-			byte value;
-			do
-			{
-				if(!ReadStubByte(sw, timeoutMs, out value))
-				{
-					if(!isErrorExpected) addErrorLine("Command response is empty!");
-					return null;
-				}
-			} while(value != 0x5A);
-
-			var response = new List<byte>() { value };
-			for(int i = 0; i < 3; i++)
-			{
-				if(!ReadStubByte(sw, timeoutMs, out value))
-				{
-					if(!isErrorExpected) addErrorLine("Command response header is incomplete!");
-					return null;
-				}
-				response.Add(value);
-			}
-			int dataLength = response[2] | response[3] << 8;
-			for(int i = 0; i < dataLength + 2; i++)
-			{
-				if(!ReadStubByte(sw, timeoutMs, out value))
-				{
-					if(!isErrorExpected) addErrorLine("Command response is incomplete!");
-					return null;
-				}
-				response.Add(value);
-			}
-
-			byte[] bytes = response.ToArray();
-			if(bytes[1] != (byte)type)
-			{
-				if(!isErrorExpected) addErrorLine($"Command response type 0x{bytes[1]:X2} does not match 0x{type:X2}!");
-				return null;
-			}
-			if(StubCRC8(bytes, bytes.Length - 1) != bytes[bytes.Length - 1])
-			{
-				addErrorLine("Command checksum is incorrect!");
-				logger.setState("Checksum mismatch!", Color.Red);
-				return null;
-			}
-			byte status = bytes[bytes.Length - 2];
-			if(status != 0)
-			{
-				if(!isErrorExpected)
-				{
-					string statusName = status switch
-					{
-						0x01 => "ERROR",
-						0x02 => "ADDR_ERROR",
-						0x03 => "TYPE_ERROR",
-						0x04 => "LEN_ERROR",
-						0x05 => "CRC_ERROR",
-						_ => $"UNKNOWN_ERROR_{status:X2}"
-					};
-					addErrorLine($"Command status is {statusName}");
-				}
-				return null;
-			}
-			if(dataLength != expectedReplyLen)
-			{
-				if(!isErrorExpected) addErrorLine($"Command reply length {dataLength} != expected {expectedReplyLen}");
-				return null;
-			}
-			if(type == CMD_BAUD)
-			{
-				serial.BaudRate = br;
-				Thread.Sleep(10);
-			}
-			var ret = new byte[dataLength];
-			Array.Copy(bytes, 4, ret, 0, dataLength);
-			return ret;
-		}
-
-		protected override bool CheckHash(int addr, int len, byte[] data)
-		{
-			var cmd = new List<byte>();
-			cmd.AddRange(BitConverter.GetBytes(addr));
-			cmd.AddRange(BitConverter.GetBytes(len));
-			byte[] expected = ExecuteCommand(CMD_CRC32, cmd.ToArray(), 30, 4);
-			if(expected == null)
-				return false;
-			uint expectedCrc = BitConverter.ToUInt32(expected, 0);
-			uint actualCrc = CRC.crc32_ver2(0xFFFFFFFF, data, len, 0);
-			if(actualCrc != expectedCrc)
-			{
-				addErrorLine($"CRC32 mismatch!\r\ndevice:\t{expectedCrc:X8}\r\nflasher:\t{actualCrc:X8}");
-				logger.setState("CRC32 mismatch!", Color.Red);
-				return false;
-			}
-			addSuccess($"CRC32 matches {expectedCrc:X8}!" + Environment.NewLine);
-			return true;
-		}
+		protected override bool CheckHash(int addr, int len, byte[] data) => CheckCRC(addr, len, data);
 
 		public override bool doErase(int startSector = 0x000, int sectors = 10, bool bAll = false)
 		{

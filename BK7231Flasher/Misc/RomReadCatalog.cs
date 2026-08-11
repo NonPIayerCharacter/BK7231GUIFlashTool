@@ -129,10 +129,13 @@ namespace BK7231Flasher
         const string Rtl8710bEfuseBackend = "RTL8710B_Stub cmd 0x99";
         const string RtlStubRomController = "raw CPU memory via XMODEM";
         const string Rtl8710bEfuseController = "EFUSE_LogicalMap_Read";
+        const string Rtl8720dRomBackend = "RTL8720D_Stub cmd 0x98";
+        const string Rtl8720dEfuseBackend = "RTL8720D_Stub cmd 0x99";
         const string Rtl8721daRomBackend = "RTL8721DA_Stub cmd 0x98";
         const string Rtl8721daEfuseBackend = "RTL8721DA_Stub cmd 0x99";
         const string Rtl8720eRomBackend = "RTL8720E_Stub cmd 0x98";
         const string Rtl8720eEfuseBackend = "RTL8720E_Stub cmd 0x99";
+        const string RtlKm0RomSpace = "KM0 ROM memory";
         const string RtlKm4RomSpace = "KM4 ROM memory";
         const string RtlAmebaEfuseSpace = "logical OTP map";
         const string RtlAmebaEfuseController = "OTP_LogicalMap_Read";
@@ -227,6 +230,8 @@ namespace BK7231Flasher
             new RomReadTarget(BKType.RTL87X0C, RomReadKind.Efuse, "eFuse", 0x00000000, 0x200, 115200, CommonSerialBauds, Rtlz2EfuseSpace, Rtlz2EfuseBackend, Rtlz2EfuseController),
             new RomReadTarget(BKType.RTL8710B, RomReadKind.Rom, "ROM", 0x00000000, 0x80000, 115200, CommonSerialBauds, RtlStubRomSpace, Rtl8710bRomBackend, RtlStubRomController),
             new RomReadTarget(BKType.RTL8710B, RomReadKind.Efuse, "eFuse", 0x00000000, 0x200, 115200, CommonSerialBauds, Rtl8710bEfuseSpace, Rtl8710bEfuseBackend, Rtl8710bEfuseController),
+            new RomReadTarget(BKType.RTL8720D, RomReadKind.Rom, "ROM", 0x00000000, 0x24000, 115200, CommonSerialBauds, RtlKm0RomSpace, Rtl8720dRomBackend, RtlStubRomController),
+            new RomReadTarget(BKType.RTL8720D, RomReadKind.Efuse, "eFuse", 0x00000000, 0x400, 115200, CommonSerialBauds, Rtl8710bEfuseSpace, Rtl8720dEfuseBackend, Rtl8710bEfuseController),
             // These stubs run on KM4. The KM0 (RTL8721DA) and KR4 (RTL8720E)
             // ROMs are physically private to their respective secondary cores.
             new RomReadTarget(BKType.RTL8721DA, RomReadKind.Rom, "ROM", 0x00000000, 0x80000, 115200, CommonSerialBauds, RtlKm4RomSpace, Rtl8721daRomBackend, RtlStubRomController, outputFileNameTag: "KM4_ROM"),
