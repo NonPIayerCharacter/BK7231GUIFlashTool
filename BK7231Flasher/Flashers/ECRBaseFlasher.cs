@@ -11,24 +11,24 @@ namespace BK7231Flasher
 {
 	public abstract class ECRBaseFlasher : BaseFlasher
 	{
-		protected static readonly byte CMD_SYN = 0x00;
-		protected static readonly byte CMD_FLASH_ERASE = 0x04;
-		protected static readonly byte CMD_FLASH_CHIPERASE = 0x05;
-		protected static readonly byte CMD_BAUD = 0x07;
-		protected static readonly byte CMD_SHA256 = 0x09;
-		protected static readonly byte CMD_CUSTOM_CHIP_INFO = 0x20;
-		protected static readonly byte CMD_CUSTOM_CRC32 = 0x8F;
-		protected static readonly byte CMD_CUSTOM_FLASH_ID = 0x90;
-		protected static readonly byte CMD_CUSTOM_XMODEM_WRITE = 0x91;
-		protected static readonly byte CMD_CUSTOM_XMODEM_READ = 0x92;
-		protected static readonly byte CMD_CUSTOM_KV_GET = 0x93;
-		protected static readonly byte CMD_CUSTOM_KV_SET = 0x94;
-		protected static readonly byte CMD_CUSTOM_GET_MAC = 0x95;
-		protected static readonly byte CMD_CUSTOM_XMODEM_READ_COMPRESSED = 0x96;
-		protected static readonly byte CMD_CUSTOM_XMODEM_WRITE_COMPRESSED = 0x97;
-		protected static readonly byte CMD_CUSTOM_XMODEM_READ_RAW = 0x98;
-		protected static readonly byte CMD_CUSTOM_READ_EFUSE = 0x99;
-		protected static readonly byte CMD_CUSTOM_READ_OTP = 0x9A;
+		internal static readonly byte CMD_SYN = 0x00;
+		internal static readonly byte CMD_FLASH_ERASE = 0x04;
+		internal static readonly byte CMD_FLASH_CHIPERASE = 0x05;
+		internal static readonly byte CMD_BAUD = 0x07;
+		internal static readonly byte CMD_SHA256 = 0x09;
+		internal static readonly byte CMD_CUSTOM_CHIP_INFO = 0x20;
+		internal static readonly byte CMD_CUSTOM_CRC32 = 0x8F;
+		internal static readonly byte CMD_CUSTOM_FLASH_ID = 0x90;
+		internal static readonly byte CMD_CUSTOM_XMODEM_WRITE = 0x91;
+		internal static readonly byte CMD_CUSTOM_XMODEM_READ = 0x92;
+		internal static readonly byte CMD_CUSTOM_KV_GET = 0x93;
+		internal static readonly byte CMD_CUSTOM_KV_SET = 0x94;
+		internal static readonly byte CMD_CUSTOM_GET_MAC = 0x95;
+		internal static readonly byte CMD_CUSTOM_XMODEM_READ_COMPRESSED = 0x96;
+		internal static readonly byte CMD_CUSTOM_XMODEM_WRITE_COMPRESSED = 0x97;
+		internal static readonly byte CMD_CUSTOM_XMODEM_READ_RAW = 0x98;
+		internal static readonly byte CMD_CUSTOM_READ_EFUSE = 0x99;
+		internal static readonly byte CMD_CUSTOM_READ_OTP = 0x9A;
 
 		internal static readonly Dictionary<BKType, uint> PlatformIDs = new Dictionary<BKType, uint>()
 		{
