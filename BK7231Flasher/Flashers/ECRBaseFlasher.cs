@@ -28,12 +28,15 @@ namespace BK7231Flasher
 		protected static readonly byte CMD_CUSTOM_XMODEM_WRITE_COMPRESSED = 0x97;
 		protected static readonly byte CMD_CUSTOM_XMODEM_READ_RAW = 0x98;
 		protected static readonly byte CMD_CUSTOM_READ_EFUSE = 0x99;
+		protected static readonly byte CMD_CUSTOM_READ_OTP = 0x9A;
 
 		internal static readonly Dictionary<BKType, uint> PlatformIDs = new Dictionary<BKType, uint>()
 		{
 			{ BKType.ECR6600, 0x4C7959C9 },
 			{ BKType.GD32VW553, 0xFFDC26B5 },
 			//{ BKType.OPL1000A2, 0xAA5D6AC8 },
+			{ BKType.LN8825, 0x8ABF79A8 },
+			{ BKType.LN882H, 0xA40B7429 },
 			{ BKType.RDA5981, 0x7272742E },
 			{ BKType.RTL8710B, 0x43B186D6 },
 			{ BKType.RTL87X0C, 0x34B6B640 },
@@ -445,7 +448,7 @@ namespace BK7231Flasher
 			}
 		}
 
-		protected byte[] InternalReadEfusePayload(int expectedLength, string targetKindName)
+		protected byte[] InternalReadEfusePayload(int expectedLength, string targetKindName, bool isOtp = false)
 		{
 			if(expectedLength <= 0)
 			{
@@ -457,11 +460,7 @@ namespace BK7231Flasher
 					return null;
 				logger.setProgress(0, expectedLength);
 				logger.setState("Reading " + targetKindName + "...", Color.Transparent);
-				byte[] result = ExecuteCommand(CMD_CUSTOM_READ_EFUSE, null, 2, expectedLength);
-				if(result == null)
-				{
-					throw new IOException(chipType + " " + targetKindName + " command returned no data.");
-				}
+				byte[] result = ExecuteCommand(isOtp ? CMD_CUSTOM_READ_OTP : CMD_CUSTOM_READ_EFUSE, null, 2, expectedLength) ?? throw new IOException($"{chipType} {targetKindName} command returned no data.");
 				logger.setProgress(expectedLength, expectedLength);
 				logger.setState(targetKindName + " read success!", Color.Green);
 				return result;
@@ -710,6 +709,14 @@ namespace BK7231Flasher
 				addErrorLine(e.Message);
 				return false;
 			}
+		}
+
+		public override void Dispose()
+		{
+			ms?.Dispose();
+			ms = null;
+			closePort();
+			base.Dispose();
 		}
 	}
 }

@@ -177,7 +177,6 @@
     <Compile Include="Utils\RFPartitionUtil.cs" />
     <Compile Include="Helpers\RichTextUtil.cs" />
     <Compile Include="Misc\TuyaModules.cs" />
-    <Compile Include="Utils\YModem.cs" />
     <EmbeddedResource Include="FormDownloader.resx">
       <DependentUpon>FormDownloader.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -222,10 +221,8 @@
     <EmbeddedResource Include="Floaders\TR6260_Boot.bin" />
     <EmbeddedResource Include="Floaders\TR6260_Partition.bin" />
     <EmbeddedResource Include="Floaders\BL702Floader_32m.bin" />
-    <EmbeddedResource Include="Floaders\LN882H_RamCode.bin" />
     <EmbeddedResource Include="Floaders\W800_Stub.bin" />
     <EmbeddedResource Include="Floaders\XR809_Stub.bin" />
-    <EmbeddedResource Include="Floaders\LN88xx_RamCode.bin" />
     <EmbeddedResource Include="Floaders\ESP32_Stub.json" />
     <EmbeddedResource Include="Floaders\ESP32S2_Stub.json" />
     <EmbeddedResource Include="Floaders\ESP32C2_Stub.json" />
@@ -249,6 +246,8 @@
     <EmbeddedResource Include="Floaders\ECR6600_Stub.bin" />
     <EmbeddedResource Include="Floaders\RTL8710C_Stub.bin" />
     <EmbeddedResource Include="Floaders\RTL8720D_Stub.bin" />
+    <EmbeddedResource Include="Floaders\LN8825_Stub.bin" />
+    <EmbeddedResource Include="Floaders\LN882H_Stub.bin" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
