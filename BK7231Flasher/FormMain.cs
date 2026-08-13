@@ -603,7 +603,10 @@ namespace BK7231Flasher
             int length = target.Length.Value;
             int end = start + length;
             labelReadRomRangeStart.Text = "Space: " + formatReadRomDetailValue(target.AddressSpace);
-            labelReadRomRangeLength.Text = "Range: " + BaseFlasher.formatHex(start) + ".." + BaseFlasher.formatHex(end - 1) + " (" + BaseFlasher.formatHex(length) + ")";
+            if(end > 0)
+                labelReadRomRangeLength.Text = "Range: " + BaseFlasher.formatHex(start) + ".." + BaseFlasher.formatHex(end - 1) + " (" + BaseFlasher.formatHex(length) + ")";
+            else
+                labelReadRomRangeLength.Text = "Range: variable";
             labelReadRomRangeEnd.Text = "Backend: " + formatReadRomDetailValue(target.Backend);
             labelReadRomRangeController.Text = "Ctrl: " + formatReadRomDetailValue(target.Controller);
         }

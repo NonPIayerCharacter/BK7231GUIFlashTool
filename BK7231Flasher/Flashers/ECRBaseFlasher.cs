@@ -231,7 +231,7 @@ namespace BK7231Flasher
 				}
 				return null;
 			}
-			if(dataLength != expectedReplyLen)
+			if(expectedReplyLen > 0 && dataLength != expectedReplyLen)
 			{
 				if(!isErrorExpected) addErrorLine($"Command reply length {dataLength} != expected {expectedReplyLen}");
 				return null;
@@ -451,18 +451,16 @@ namespace BK7231Flasher
 
 		protected byte[] InternalReadEfusePayload(int expectedLength, string targetKindName, bool isOtp = false)
 		{
-			if(expectedLength <= 0)
-			{
-				throw new ArgumentOutOfRangeException("expectedLength", "eFuse read length must be greater than zero.");
-			}
 			try
 			{
 				if(!SetBaud(baudrate))
 					return null;
-				logger.setProgress(0, expectedLength);
+				if(expectedLength > 0)
+					logger.setProgress(0, expectedLength);
 				logger.setState("Reading " + targetKindName + "...", Color.Transparent);
 				byte[] result = ExecuteCommand(isOtp ? CMD_CUSTOM_READ_OTP : CMD_CUSTOM_READ_EFUSE, null, 2, expectedLength) ?? throw new IOException($"{chipType} {targetKindName} command returned no data.");
-				logger.setProgress(expectedLength, expectedLength);
+				if(expectedLength > 0)
+					logger.setProgress(expectedLength, expectedLength);
 				logger.setState(targetKindName + " read success!", Color.Green);
 				return result;
 			}

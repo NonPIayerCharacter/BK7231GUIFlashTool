@@ -277,11 +277,6 @@ namespace BK7231Flasher
 		{
 			try
 			{
-				if(target == null)
-				{
-					addError("No ROM reader target selected." + Environment.NewLine);
-					return null;
-				}
 				if(doGenericSetup() == false)
 				{
 					return null;
@@ -296,9 +291,11 @@ namespace BK7231Flasher
 				switch(target.Kind)
 				{
 					case RomReadKind.Rom:
-						return ReadEcrRom(target.Address ?? EcrRomBase, target.Length ?? EcrRomSize, targetKindName);
+						return InternalReadRawMemory(target.Address ?? EcrRomBase, target.Length ?? EcrRomSize, targetKindName);
+					case RomReadKind.Otp:
+						return InternalReadEfusePayload(target.Length ?? -1, targetKindName, true);
 					case RomReadKind.Efuse:
-						return ReadEcrEfuse(target.Length ?? EcrEfuseSize, targetKindName);
+						return InternalReadEfusePayload(target.Length ?? EcrEfuseSize, targetKindName);
 					default:
 						addError("Selected ECR6600 read target is not implemented." + Environment.NewLine);
 						return null;
@@ -322,27 +319,6 @@ namespace BK7231Flasher
 			{
 				try { closePort(); } catch { }
 			}
-		}
-
-		byte[] ReadEcrRom(int offset, int length, string targetKindName)
-		{
-			if(offset < EcrRomBase || length <= 0 || offset > EcrRomBase + EcrRomSize - length)
-			{
-				throw new ArgumentOutOfRangeException("length", chipType + " ROM read range is outside the supported BootROM area.");
-			}
-
-			return InternalReadRawMemory(offset, length, targetKindName);
-		}
-
-		byte[] ReadEcrEfuse(int expectedLength, string targetKindName)
-		{
-			if(expectedLength != EcrEfuseSize)
-			{
-				throw new ArgumentOutOfRangeException("expectedLength", chipType + " eFuse dump length must be " + EcrEfuseSize + " bytes.");
-			}
-
-			addLogLine("Reading " + chipType + " eFuse via custom stub command 0x99.");
-			return InternalReadEfusePayload(expectedLength, targetKindName);
 		}
 	}
 }

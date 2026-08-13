@@ -202,6 +202,7 @@ namespace BK7231Flasher
             new RomReadTarget(BKType.RTL8720E, RomReadKind.Efuse, "eFuse", 0x00000000, 0x400, 115200, CommonSerialBauds, RtlAmebaEfuseSpace, GCD(BKType.RTL8720E, CRE), RtlAmebaEfuseController),
             new RomReadTarget(BKType.ECR6600, RomReadKind.Rom, "ROM", 0x00000000, 0x10000, 115200, CommonSerialBauds, CommonRomMemory, GCD(BKType.ECR6600, CRR), CommonStubRomController),
             new RomReadTarget(BKType.ECR6600, RomReadKind.Efuse, "eFuse", 0x00000000, 0x80, 115200, CommonSerialBauds, EcrEfuseSpace, GCD(BKType.ECR6600, CRE), EcrEfuseController),
+            new RomReadTarget(BKType.ECR6600, RomReadKind.Otp, "Flash OTP", 0x00000000, -1, 115200, CommonSerialBauds, LnFlashOtpSpace, GCD(BKType.ECR6600, CRO), LnHalController),
             new RomReadTarget(BKType.RDA5981, RomReadKind.Rom, "ROM", 0x00000000, 0x10000, 921600, CommonSerialBauds, CommonRomMemory, GCD(BKType.RDA5981, CRR), CommonStubRomController),
             new RomReadTarget(BKType.RDA5981, RomReadKind.Efuse, "eFuse", 0x00000000, 0x20, 921600, CommonSerialBauds, RdaEfuseSpace, GCD(BKType.RDA5981, CRE), RdaEfuseController),
             new RomReadTarget(BKType.GD32VW553, RomReadKind.Rom, "ROM", 0x0BF40000, 0x40000, 921600, CommonSerialBauds, CommonRomMemory, GCD(BKType.GD32VW553, CRR), CommonStubRomController),
@@ -214,6 +215,7 @@ namespace BK7231Flasher
             new RomReadTarget(BKType.XR872, RomReadKind.Efuse, "eFuse", 0x00000000, 0x80, 921600, XrSerialBauds, XrEfuseSpace, XrBromBackend, XrEfuseController),
             new RomReadTarget(BKType.TR6260, RomReadKind.Rom, "ROM", 0x00000000, 0x8000, 115200, CommonSerialBauds, CommonRomMemory, GCD(BKType.TR6260, CRR), CommonStubRomController),
             new RomReadTarget(BKType.TR6260, RomReadKind.Efuse, "eFuse", 0x00000000, 0x20, 115200, CommonSerialBauds, EcrEfuseSpace, GCD(BKType.TR6260, CRE), "eFuse controller @ 0x0060B200"),
+            new RomReadTarget(BKType.TR6260, RomReadKind.Otp, "Flash OTP", 0x00000000, -1, 115200, CommonSerialBauds, LnFlashOtpSpace, GCD(BKType.TR6260, CRO), LnHalController),
         };
 
         public static IEnumerable<BKType> GetSupportedPlatforms()
