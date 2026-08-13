@@ -212,6 +212,8 @@ namespace BK7231Flasher
             new RomReadTarget(BKType.XR809, RomReadKind.Efuse, "eFuse", 0x00000000, 0x100, 921600, XrSerialBauds, XrEfuseSpace, Xr809Backend, XrEfuseController),
             new RomReadTarget(BKType.XR872, RomReadKind.Rom, "ROM", 0x00000000, 0x28000, 921600, XrSerialBauds, CommonRomMemory, XrBromBackend, XrRomController),
             new RomReadTarget(BKType.XR872, RomReadKind.Efuse, "eFuse", 0x00000000, 0x80, 921600, XrSerialBauds, XrEfuseSpace, XrBromBackend, XrEfuseController),
+            new RomReadTarget(BKType.TR6260, RomReadKind.Rom, "ROM", 0x00000000, 0x8000, 115200, CommonSerialBauds, CommonRomMemory, GCD(BKType.TR6260, CRR), CommonStubRomController),
+            new RomReadTarget(BKType.TR6260, RomReadKind.Efuse, "eFuse", 0x00000000, 0x20, 115200, CommonSerialBauds, EcrEfuseSpace, GCD(BKType.TR6260, CRE), "eFuse controller @ 0x0060B200"),
         };
 
         public static IEnumerable<BKType> GetSupportedPlatforms()

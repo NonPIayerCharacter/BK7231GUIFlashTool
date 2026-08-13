@@ -248,6 +248,7 @@
     <EmbeddedResource Include="Floaders\RTL8720D_Stub.bin" />
     <EmbeddedResource Include="Floaders\LN8825_Stub.bin" />
     <EmbeddedResource Include="Floaders\LN882H_Stub.bin" />
+    <EmbeddedResource Include="Floaders\TR6260_Stub.bin" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
