@@ -472,7 +472,7 @@ namespace BK7231Flasher
 
 		protected bool InternalWrite(int addr, byte[] data, int len = -1)
 		{
-			if((chipType == BKType.TR6260) && bUseCompressionIfPossible)
+			if((chipType == BKType.RTL8720D || chipType == BKType.TR6260) && bUseCompressionIfPossible)
 			{
 				addErrorLine($"Compressed write is not supported on {chipType}, disabling...");
 				bUseCompressionIfPossible = false;

@@ -406,6 +406,8 @@ namespace BK7231Flasher
 				{
 					case RomReadKind.Rom:
 						return InternalReadRawMemory(target.Address ?? 0, target.Length ?? (chipType == BKType.RTL8720E ? 0x48000 : 0x80000), targetKindName);
+					case RomReadKind.Otp:
+						return InternalReadEfusePayload(target.Length ?? -1, targetKindName, true);
 					case RomReadKind.Efuse:
 						return InternalReadEfusePayload(target.Length ?? (chipType == BKType.RTL8710B ? 0x200 : 0x400), targetKindName);
 					default:

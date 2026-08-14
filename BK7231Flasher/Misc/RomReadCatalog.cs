@@ -195,6 +195,7 @@ namespace BK7231Flasher
             new RomReadTarget(BKType.RTL8710B, RomReadKind.Efuse, "eFuse", 0x00000000, 0x200, 115200, CommonSerialBauds, Rtl8710bEfuseSpace, GCD(BKType.RTL8710B, CRE), Rtl8710bEfuseController),
             new RomReadTarget(BKType.RTL8720D, RomReadKind.Rom, "ROM", 0x00000000, 0x24000, 115200, CommonSerialBauds, RtlKm0RomSpace, GCD(BKType.RTL8720D, CRR), CommonStubRomController),
             new RomReadTarget(BKType.RTL8720D, RomReadKind.Efuse, "eFuse", 0x00000000, 0x400, 115200, CommonSerialBauds, Rtl8710bEfuseSpace, GCD(BKType.RTL8720D, CRE), Rtl8710bEfuseController),
+            new RomReadTarget(BKType.RTL8720D, RomReadKind.Otp, "Flash OTP", 0x00000000, -1, 115200, CommonSerialBauds, LnFlashOtpSpace + " (Unused)", GCD(BKType.RTL8720D, CRO), RdaOtpController),
             // These stubs run on KM4. The KM0 (RTL8721DA) and KR4 (RTL8720E)
             // ROMs are physically private to their respective secondary cores.
             new RomReadTarget(BKType.RTL8721DA, RomReadKind.Rom, "ROM", 0x00000000, 0x80000, 115200, CommonSerialBauds, RtlKm4RomSpace, GCD(BKType.RTL8721DA, CRR), CommonStubRomController, outputFileNameTag: "KM4_ROM"),
