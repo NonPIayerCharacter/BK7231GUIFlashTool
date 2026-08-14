@@ -246,6 +246,8 @@ namespace BK7231Flasher
 				{
 					case RomReadKind.Rom:
 						return InternalReadRawMemory(target.Address ?? RdaRomBase, target.Length ?? RdaRomSize, targetKindName);
+					case RomReadKind.Otp:
+						return InternalReadEfusePayload(target.Length ?? -1, targetKindName, true);
 					case RomReadKind.Efuse:
 						return InternalReadEfusePayload(target.Length ?? RdaEfuseRawSize, targetKindName);
 					default:

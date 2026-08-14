@@ -421,6 +421,7 @@ namespace BK7231Flasher
 				if(!LoadBootloaderToRam())
 					return false;
 				serial.BaudRate = 115200;
+				Thread.Sleep(50);
 				var flashID = ReadFlashId();
 				if(flashID != null)
 				{

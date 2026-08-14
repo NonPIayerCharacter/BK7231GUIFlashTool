@@ -1713,7 +1713,8 @@ namespace BK7231Flasher
                 addLog("Platform: " + FlashPlatformCatalog.GetDisplayName(target.Platform) + Environment.NewLine, Color.Black);
                 addLog("Baud rate: " + chosenBaudRate + Environment.NewLine, Color.Black);
                 addLog("Address: " + (target.Address.HasValue ? BaseFlasher.formatHex(target.Address.Value) : "not catalogued yet") + Environment.NewLine, Color.Black);
-                addLog("Length: " + (target.Length.HasValue ? BaseFlasher.formatHex(target.Length.Value) : "not catalogued yet") + Environment.NewLine, Color.Black);
+                if(target.Length.HasValue && target.Length.Value > 0)
+                    addLog("Length: " + (target.Length.HasValue ? BaseFlasher.formatHex(target.Length.Value) : "not catalogued yet") + Environment.NewLine, Color.Black);
 
                 clearUp();
                 createFlasher();

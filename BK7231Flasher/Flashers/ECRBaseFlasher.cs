@@ -253,9 +253,9 @@ namespace BK7231Flasher
 				addErrorLine($"Read length cannot be zero!");
 				return null;
 			}
-			if(chipType == BKType.RTL8720D && bUseCompressionIfPossible)
+			if((chipType == BKType.RTL8720D || chipType == BKType.TR6260) && bUseCompressionIfPossible)
 			{
-				addErrorLine("Compressed read is not supported on RTL8720D, disabling...");
+				addErrorLine($"Compressed read is not supported on {chipType}, disabling...");
 				bUseCompressionIfPossible = false;
 			}
 			var offset = addr;
@@ -472,6 +472,11 @@ namespace BK7231Flasher
 
 		protected bool InternalWrite(int addr, byte[] data, int len = -1)
 		{
+			if((chipType == BKType.TR6260) && bUseCompressionIfPossible)
+			{
+				addErrorLine($"Compressed write is not supported on {chipType}, disabling...");
+				bUseCompressionIfPossible = false;
+			}
 			try
 			{
 				xm.PacketSent += Xm_PacketSent;

@@ -127,6 +127,7 @@ namespace BK7231Flasher
         #region RDA5981
         const string RdaEfuseSpace = "eFuse pages 0..15";
         const string RdaEfuseController = "RF SPI @ 0x4001301C";
+        const string RdaOtpController = "SPI read via 0x48 command";
         #endregion
         #region GD32
         const string Gd32EfuseSpace = "combined output: RF 0x40 + MCU 0x8C";
@@ -202,9 +203,10 @@ namespace BK7231Flasher
             new RomReadTarget(BKType.RTL8720E, RomReadKind.Efuse, "eFuse", 0x00000000, 0x400, 115200, CommonSerialBauds, RtlAmebaEfuseSpace, GCD(BKType.RTL8720E, CRE), RtlAmebaEfuseController),
             new RomReadTarget(BKType.ECR6600, RomReadKind.Rom, "ROM", 0x00000000, 0x10000, 115200, CommonSerialBauds, CommonRomMemory, GCD(BKType.ECR6600, CRR), CommonStubRomController),
             new RomReadTarget(BKType.ECR6600, RomReadKind.Efuse, "eFuse", 0x00000000, 0x80, 115200, CommonSerialBauds, EcrEfuseSpace, GCD(BKType.ECR6600, CRE), EcrEfuseController),
-            new RomReadTarget(BKType.ECR6600, RomReadKind.Otp, "Flash OTP", 0x00000000, -1, 115200, CommonSerialBauds, LnFlashOtpSpace, GCD(BKType.ECR6600, CRO), LnHalController),
+            new RomReadTarget(BKType.ECR6600, RomReadKind.Otp, "Flash OTP", 0x00000000, -1, 115200, CommonSerialBauds, LnFlashOtpSpace, GCD(BKType.ECR6600, CRO), RdaOtpController),
             new RomReadTarget(BKType.RDA5981, RomReadKind.Rom, "ROM", 0x00000000, 0x10000, 921600, CommonSerialBauds, CommonRomMemory, GCD(BKType.RDA5981, CRR), CommonStubRomController),
             new RomReadTarget(BKType.RDA5981, RomReadKind.Efuse, "eFuse", 0x00000000, 0x20, 921600, CommonSerialBauds, RdaEfuseSpace, GCD(BKType.RDA5981, CRE), RdaEfuseController),
+            new RomReadTarget(BKType.RDA5981, RomReadKind.Otp, "Flash OTP", 0x00000000, -1, 115200, CommonSerialBauds, LnFlashOtpSpace + " (Unused)", GCD(BKType.RDA5981, CRO), RdaOtpController),
             new RomReadTarget(BKType.GD32VW553, RomReadKind.Rom, "ROM", 0x0BF40000, 0x40000, 921600, CommonSerialBauds, CommonRomMemory, GCD(BKType.GD32VW553, CRR), CommonStubRomController),
             new RomReadTarget(BKType.GD32VW553, RomReadKind.Efuse, "eFuse", 0x00000000, Gd32RfEfuseSize + Gd32McuEfuseSize, 921600, CommonSerialBauds, Gd32EfuseSpace, Gd32EfuseBackend, Gd32EfuseController, 0, null, Gd32EfuseSlices),
             new RomReadTarget(BKType.XR806, RomReadKind.Rom, "ROM", 0x00000000, 0x28000, 921600, XrSerialBauds, CommonRomMemory, XrBromBackend, XrRomController),
@@ -215,7 +217,7 @@ namespace BK7231Flasher
             new RomReadTarget(BKType.XR872, RomReadKind.Efuse, "eFuse", 0x00000000, 0x80, 921600, XrSerialBauds, XrEfuseSpace, XrBromBackend, XrEfuseController),
             new RomReadTarget(BKType.TR6260, RomReadKind.Rom, "ROM", 0x00000000, 0x8000, 115200, CommonSerialBauds, CommonRomMemory, GCD(BKType.TR6260, CRR), CommonStubRomController),
             new RomReadTarget(BKType.TR6260, RomReadKind.Efuse, "eFuse", 0x00000000, 0x20, 115200, CommonSerialBauds, EcrEfuseSpace, GCD(BKType.TR6260, CRE), "eFuse controller @ 0x0060B200"),
-            new RomReadTarget(BKType.TR6260, RomReadKind.Otp, "Flash OTP", 0x00000000, -1, 115200, CommonSerialBauds, LnFlashOtpSpace, GCD(BKType.TR6260, CRO), LnHalController),
+            new RomReadTarget(BKType.TR6260, RomReadKind.Otp, "Flash OTP", 0x00000000, -1, 115200, CommonSerialBauds, LnFlashOtpSpace, GCD(BKType.TR6260, CRO), RdaOtpController),
         };
 
         public static IEnumerable<BKType> GetSupportedPlatforms()
