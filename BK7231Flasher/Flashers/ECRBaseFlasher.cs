@@ -34,7 +34,7 @@ namespace BK7231Flasher
 		{
 			{ BKType.ECR6600, 0x4C7959C9 },
 			{ BKType.GD32VW553, 0xFFDC26B5 },
-			//{ BKType.OPL1000A2, 0xAA5D6AC8 },
+			{ BKType.OPL1000A2, 0xAA5D6AC8 },
 			{ BKType.LN8825, 0x8ABF79A8 },
 			{ BKType.LN882H, 0xA40B7429 },
 			{ BKType.RDA5981, 0x7272742E },

@@ -27,7 +27,7 @@ namespace BK7231Flasher
 				serial.Open();
 				serial.DiscardInBuffer();
 				serial.DiscardOutBuffer();
-				serial.ReadTimeout = 1000;
+				serial.ReadTimeout = 8000;
 				xm = new XMODEM(serial, XMODEM.Variants.XModem1K, 0xFF);
 			}
 			catch(Exception ex)
@@ -108,7 +108,11 @@ namespace BK7231Flasher
 			}
 			addLogLine("Uploading stage 2 stub.");
 			serial.BaudRate = baudRate;
+			xm.DoNotWaitForEndOfFileAcknowledgement = true;
+			serial.ReadTimeout = 1000;
 			var sent = xm.Send(stub, instant: true);
+			xm.DoNotWaitForEndOfFileAcknowledgement = false;
+			serial.ReadTimeout = 8000;
 			if(sent != stub.Length)
 			{
 				addErrorLine("Second stub upload failed!");
@@ -123,6 +127,7 @@ namespace BK7231Flasher
 			var flashID = ReadFlashId(false);
 			if(flashID != null)
 			{
+				if(!CheckChipInfo()) return false;
 				addLogLine("Stub ready!");
 				return true;
 			}
@@ -205,6 +210,7 @@ namespace BK7231Flasher
 				return false;
 			if(ReadFlashId(true) != null)
 			{
+				if(!CheckChipInfo()) return false;
 				addLogLine("Stub is already uploaded!");
 				return true;
 			}
@@ -323,46 +329,7 @@ namespace BK7231Flasher
 			}
 		}
 
-		protected override bool CheckHash(int addr, int len, byte[] data)
-		{
-			var cmd = new byte[8];
-			cmd[0] = (byte)(addr & 0xFF);
-			cmd[1] = (byte)((addr >> 8) & 0xFF);
-			cmd[2] = (byte)((addr >> 16) & 0xFF);
-			cmd[3] = (byte)((addr >> 24) & 0xFF);
-			cmd[4] = (byte)(len & 0xFF);
-			cmd[5] = (byte)((len >> 8) & 0xFF);
-			cmd[6] = (byte)((len >> 16) & 0xFF);
-			cmd[7] = (byte)((len >> 24) & 0xFF);
-			var res = ExecuteCommand(CMD_CUSTOM_CRC32, cmd, 30f, 4);
-			uint crc;
-			if(res == null)
-			{
-				return false;
-			}
-			else
-			{
-				crc = BitConverter.ToUInt32(res, 0);
-			}
-			uint calc = 0;
-			unchecked
-			{
-				for(int pos = 0; pos < data.Length; pos += 0x1000)
-				{
-					int blen = Math.Min(0x1000, data.Length - pos);
-					calc += CRC.crc32_ver2(0xFFFFFFFF, data, blen, (uint)pos) ^ 0xFFFFFFFF;
-				}
-			}
-			if(crc != calc)
-			{
-				logger.setState("CRC mismatch!", Color.Red);
-				addErrorLine("CRC mismatch!");
-				addErrorLine($"Sent by OPL {formatHex(crc)}, our CRC {formatHex(calc)}");
-				return false;
-			}
-			addSuccess($"CRC matches {formatHex(calc)}!" + Environment.NewLine);
-			return true;
-		}
+		protected override bool CheckHash(int addr, int len, byte[] data) => base.CheckCRC(addr, len, data);
 
 		internal override byte[] ReadMAC()
 		{
@@ -393,10 +360,9 @@ namespace BK7231Flasher
 					case RomReadKind.Rom:
 						return InternalReadRawMemory(target.Address.Value, target.Length.Value, targetKindName);
 					case RomReadKind.Efuse:
-						addLogLine("Reading " + chipType + " eFuse via custom stub command 0x99.");
 						return InternalReadEfusePayload(target.Length.Value, targetKindName);
 					default:
-						addError("Selected OPL1000A2 read target is not implemented." + Environment.NewLine);
+						addError($"Selected {chipType} read target is not implemented." + Environment.NewLine);
 						return null;
 				}
 			}
@@ -410,95 +376,15 @@ namespace BK7231Flasher
 			catch(Exception ex)
 			{
 				string targetKindName = target == null ? "Selected target" : RomReadCatalog.GetKindDisplayName(target.Kind);
-				addError(targetKindName + " read failed: " + ex.Message + Environment.NewLine);
+				addErrorLine(targetKindName + " read failed: " + ex.Message);
 				logger.setState(targetKindName + " read failed.", Color.Red);
 				return null;
 			}
 			finally
 			{
-				try
-				{ closePort(); }
+				try { closePort(); }
 				catch { }
 			}
-		}
-
-		protected override byte[] ExecuteCommand(int type, byte[] parms = null,
-			float timeout = 0.1f, int expectedReplyLen = 0, int br = 115200, bool isErrorExpected = false)
-		{
-			parms = parms ?? (new byte[0]);
-			// MAGIC, TYPE, MSG LENGTH (2 bytes)
-			List<byte> raw = new List<byte>() { 0xA5, (byte)type, (byte)(parms.Length & 0xFF), (byte)((parms.Length >> 8) & 0xFF) };
-			// MSG
-			raw.AddRange(parms);
-			// CRC8
-			raw.Add(StubCRC8(raw.ToArray(), raw.Count));
-			serial.Write(raw.ToArray(), 0, raw.Count);
-			Thread.Sleep(10);
-			if(type == CMD_BAUD) serial.BaudRate = br;
-			int timeoutMS = (int)(timeout * 1000);
-			Stopwatch sw = Stopwatch.StartNew();
-			var expect = 1 + 1 + 2 + expectedReplyLen + 1 + 1; // magic + type + data_len + data + status + crc8
-			while(sw.ElapsedMilliseconds < timeoutMS)
-			{
-				if(isCancelled) return null;
-				if(serial.BytesToRead >= expect)
-					break;
-			}
-			if(serial.BytesToRead == 0)
-			{
-				if(!isErrorExpected) addErrorLine("Command response is empty!");
-				return null;
-			}
-			var bytes = new byte[serial.BytesToRead];
-			serial.Read(bytes, 0, bytes.Length);
-			if(bytes[0] != 0x5A)
-			{
-				if(!isErrorExpected) addErrorLine("Command header is incorrect!");
-				return null;
-			}
-			byte crcret = StubCRC8(bytes, bytes.Length - 1);
-			if(crcret != bytes[bytes.Length - 1])
-			{
-				addErrorLine("Command CRC is incorrect!");
-				logger.setState("CRC mismatch!", Color.Red);
-				return null;
-			}
-			var status = string.Empty;
-			switch(bytes[bytes.Length - 2])
-			{
-				case 0x00: break;
-				case 0x01:
-					status = "ERROR";
-					break;
-				case 0x02:
-					status = "ADDR_ERROR";
-					break;
-				case 0x03:
-					status = "TYPE_ERROR";
-					break;
-				case 0x04:
-					status = "LEN_ERROR";
-					break;
-				case 0x05:
-					status = "CRC_ERROR";
-					break;
-				default:
-					status = $"Unknown error {bytes[bytes.Length - 2]}";
-					break;
-			}
-			if(status != string.Empty)
-			{
-				if(!isErrorExpected) addErrorLine($"Command status is {status}");
-				return null;
-			}
-			if(bytes.Length != expect)
-			{
-				addErrorLine($"Command reply length {bytes.Length} != expected {expect}");
-				return null;
-			}
-			var ret = new byte[expectedReplyLen];
-			Array.Copy(bytes, 4, ret, 0, expectedReplyLen);
-			return ret;
 		}
 	}
 }
