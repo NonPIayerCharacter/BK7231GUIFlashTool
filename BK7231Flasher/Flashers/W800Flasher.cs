@@ -405,19 +405,20 @@ namespace BK7231Flasher
 		{
 			try
 			{
-				if(target == null || target.Kind != RomReadKind.Rom || !target.Address.HasValue || !target.Length.HasValue)
-				{
-					addErrorLine("Selected W800 ROM read target is not valid.");
-					return null;
-				}
-				if(target.Address.Value < 0 || target.Length.Value <= 0 || target.Address.Value > 0x5000 - target.Length.Value)
-				{
-					addErrorLine("Selected W800 ROM read range is outside mask ROM.");
-					return null;
-				}
 				if(!doGenericSetup() || !Sync())
 					return null;
-				return InternalReadRawMemory(target.Address.Value, target.Length.Value, "mask ROM");
+
+				string targetKindName = RomReadCatalog.GetKindDisplayName(target.Kind);
+				switch(target.Kind)
+				{
+					case RomReadKind.Rom:
+						return InternalReadRawMemory(target.Address ?? 0, target.Length ?? 0, targetKindName);
+					case RomReadKind.Otp:
+						return InternalReadEfusePayload(target.Length ?? -1, targetKindName, true);
+					default:
+						addError("Selected " + chipType + " read target is not implemented." + Environment.NewLine);
+						return null;
+				}
 			}
 			catch(Exception ex)
 			{

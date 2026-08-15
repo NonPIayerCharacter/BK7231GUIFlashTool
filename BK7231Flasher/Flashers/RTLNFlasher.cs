@@ -165,6 +165,7 @@ namespace BK7231Flasher
 				}
 				addLogLine("");
 				SetComBaud(115200);
+				Thread.Sleep(20);
 				if(!CheckChipInfo(PrintChipInfo)) return false;
 				flashID = ReadFlashId(false);
 				if(flashID != null)
