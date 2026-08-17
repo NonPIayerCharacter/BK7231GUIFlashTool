@@ -19,8 +19,8 @@ namespace BK7231Flasher
 		const byte TRS_ROM_FILE_ACK = 0;
 
 		const uint TRS_FRM_TYPE_UBOOT = 1;
-		const int PARTITION_ADDR = 0x6000;
-		const int APP_ADDR = 0x7000;
+		const int PARTITION_ADDR = 0x4000;
+		const int APP_ADDR = 0x5000;
 
 		bool sessionPortUnavailable;
 		bool sessionClosedPortWriteLogged;
@@ -268,6 +268,18 @@ namespace BK7231Flasher
 
 			return data.Length >= (DEFAULT_FLASH_SIZE - APP_ADDR);
 		}
+		
+		static uint ParseAsciiDecimal(byte[] ascii, int len, int offset = 0)
+		{
+			uint val = 0;
+			for(int i = offset; i < len + offset; i++)
+			{
+				byte c = ascii[i];
+				if(c >= '0' && c <= '9') val = (uint)(val * 10 + (c - '0'));
+				else return 0;
+			}
+			return val;
+		}
 
 		public override void doReadAndWrite(int startSector, int sectors, string sourceFileName, WriteMode rwMode)
 		{
@@ -308,11 +320,18 @@ namespace BK7231Flasher
 					}
 					else if(startSector == 0)
 					{
-						byte[] boot = FLoaders.GetRawBinaryFromAssembly("TR6260_Boot");
-						byte[] partition = FLoaders.GetRawBinaryFromAssembly("TR6260_Partition");
-						InternalWrite(0, boot);
-						InternalWrite(PARTITION_ADDR, partition);
-						InternalWrite(APP_ADDR, data);
+						if((ParseAsciiDecimal(data, 8) + ParseAsciiDecimal(data, 8, 8)) == data.Length - 16)
+						{
+							byte[] boot = FLoaders.GetRawBinaryFromAssembly("TR6260_Boot");
+							byte[] partition = FLoaders.GetRawBinaryFromAssembly("TR6260_Partition");
+							InternalWrite(0, boot);
+							InternalWrite(PARTITION_ADDR, partition);
+							InternalWrite(APP_ADDR, data);
+						}
+						else
+						{
+							InternalWrite(startSector, data);
+						}
 					}
 					else
 					{
