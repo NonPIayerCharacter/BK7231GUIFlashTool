@@ -19,8 +19,8 @@ namespace BK7231Flasher
 		const byte TRS_ROM_FILE_ACK = 0;
 
 		const uint TRS_FRM_TYPE_UBOOT = 1;
-		const int PARTITION_ADDR = 0x4000;
-		const int APP_ADDR = 0x5000;
+		const int PARTITION_ADDR = 0x3000;
+		const int APP_ADDR = 0x4000;
 
 		bool sessionPortUnavailable;
 		bool sessionClosedPortWriteLogged;
