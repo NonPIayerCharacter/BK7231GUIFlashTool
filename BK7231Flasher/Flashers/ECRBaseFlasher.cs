@@ -168,6 +168,13 @@ namespace BK7231Flasher
 
 			serial.DiscardInBuffer();
 			serial.Write(raw.ToArray(), 0, raw.Count);
+
+			if(type == CMD_BAUD)
+			{
+				Thread.Sleep(1);
+				serial.BaudRate = br;
+			}
+
 			int timeoutMs = Math.Max(1, (int)(timeout * 1000));
 			Stopwatch sw = Stopwatch.StartNew();
 			byte value;
@@ -235,11 +242,6 @@ namespace BK7231Flasher
 			{
 				if(!isErrorExpected) addErrorLine($"Command reply length {dataLength} != expected {expectedReplyLen}");
 				return null;
-			}
-			if(type == CMD_BAUD)
-			{
-				serial.BaudRate = br;
-				Thread.Sleep(10);
 			}
 			var ret = new byte[dataLength];
 			Array.Copy(bytes, 4, ret, 0, dataLength);
@@ -680,7 +682,7 @@ namespace BK7231Flasher
 
 		protected virtual byte[] GetChipInfo()
 		{
-			var data = ExecuteCommand(CMD_CUSTOM_CHIP_INFO, expectedReplyLen: 32) ?? throw new Exception("Failed to get chip data from stub!");
+			var data = ExecuteCommand(CMD_CUSTOM_CHIP_INFO, expectedReplyLen: -1) ?? throw new Exception("Failed to get chip data from stub!");
 			var stubPlatform = MiscUtils.ReadU32LE(data);
 			if(!PlatformIDs.TryGetValue(chipType, out var chipID))
 			{

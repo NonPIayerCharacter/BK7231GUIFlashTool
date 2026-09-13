@@ -320,6 +320,8 @@ namespace BK7231Flasher
 				try { closePort(); } catch { }
 			}
 		}
+
+		internal override byte[] ReadMAC() => null;
 	}
 }
 
